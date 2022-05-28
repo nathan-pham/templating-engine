@@ -8,4 +8,4 @@ const engine = new TemplatingEngine(fs.readFileSync("./index.html", "utf-8"), {
     },
 });
 
-console.log(engine.render());
+console.log(engine.compile());
