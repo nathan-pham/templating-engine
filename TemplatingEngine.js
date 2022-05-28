@@ -8,7 +8,6 @@ export default class TemplatingEngine {
         this.content = content;
         this.data = data;
     }
-
     evaluate(sectionContent) {
         // import statement
         const importRegex = /import\((.*)\)/g;
@@ -23,7 +22,10 @@ export default class TemplatingEngine {
             return importContent;
         }
 
-        if (!sectionContent.includes("return")) {
+        if (
+            !sectionContent.startsWith("return") &&
+            sectionContent.trim().split("\n").length === 1
+        ) {
             return this.evaluate(`return ${sectionContent}`);
         }
 
@@ -44,6 +46,7 @@ export default class TemplatingEngine {
             const endIndex = this.content.indexOf(CLOSE_DEL, currentIndex);
 
             if (startIndex === -1 || endIndex === -1) {
+                content += this.content.substring(currentIndex);
                 break;
             }
 
