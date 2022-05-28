@@ -6,7 +6,7 @@ const CLOSE_DEL = "}}";
 export default class TemplatingEngine {
     constructor(content = "", data = {}) {
         this.content = content;
-        this.data = data;
+        this.locals = data;
     }
     evaluate(sectionContent) {
         // import statement
@@ -20,16 +20,14 @@ export default class TemplatingEngine {
             );
 
             return importContent;
-        }
-
-        if (
+        } else if (
             !sectionContent.startsWith("return") &&
             sectionContent.trim().split("\n").length === 1
         ) {
             return this.evaluate(`return ${sectionContent}`);
         }
 
-        return new Function(`with(this.data) { 
+        return new Function(`with(this.locals) { 
             try {
                 ${sectionContent}
             } catch(e) {
@@ -57,7 +55,10 @@ export default class TemplatingEngine {
             );
 
             content += this.content.substring(currentIndex, startIndex);
-            content += sectionContent;
+
+            if (sectionContent) {
+                content += sectionContent;
+            }
 
             currentIndex = endIndex + CLOSE_DEL.length;
         }
