@@ -3,27 +3,41 @@ import * as fs from "fs";
 const OPEN_DEL = "{{";
 const CLOSE_DEL = "}}";
 
+const readFile = (path) => fs.readFileSync(path, "utf-8");
+
 export default class TemplatingEngine {
     constructor(content = "", data = {}) {
         this.content = content;
         this.locals = data;
     }
+
     evaluate(sectionContent) {
         // import statement
         const importRegex = /import\((.*)\)/g;
         const importMatch = importRegex.exec(sectionContent);
         if (importMatch) {
             const [_, importPath] = importMatch;
-            const importContent = fs.readFileSync(
-                importPath.substring(1, importPath.length - 1),
-                "utf-8"
-            );
 
-            return importContent;
+            try {
+                const moduleContent = new TemplatingEngine(
+                    readFile(importPath.substring(1, importPath.length - 1)),
+                    this.locals
+                ).compile();
+
+                return this.evaluate(
+                    sectionContent.replace(
+                        importRegex,
+                        "`" + moduleContent + "`"
+                    )
+                );
+            } catch (e) {
+                return e;
+            }
         } else if (
             !sectionContent.startsWith("return") &&
             sectionContent.trim().split("\n").length === 1
         ) {
+            // only auto add return on single vars
             return this.evaluate(`return ${sectionContent}`);
         }
 
